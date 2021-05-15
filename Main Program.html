@@ -1,0 +1,329 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title></title>
+	<style>
+		canvas {
+			background-image: linear-gradient(black, #101010, #202020);
+		}
+		body {
+			background-color: black;
+		}
+	</style>
+	<script>
+		var gravity = [];
+		var object = [];
+		var pointList = [];
+		var points = 0;
+		var pointCounter = 0;
+		var mover = [];
+		
+		function randomInt(min, max) {	 	
+			
+			var RandInt = Math.floor(Math.random() * (max - min)) + (min);
+			
+			return RandInt;
+		}
+		
+		function SetUp() {
+			
+			Run.StartGame();
+			
+		}
+		
+
+		var Run = {	
+		
+			canvas : document.createElement("canvas"),
+			
+			ClearTrail : function(){
+				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			},
+			
+			
+			StartGame : function() {
+				this.canvas.width = screen.width;
+				this.canvas.height = screen.height;
+				
+				this.context = this.canvas.getContext('2d');
+				
+				document.body.insertBefore(this.canvas, document.body.childNodes[0]);	
+				this.Interval = setInterval(UpdateGame, 1);
+				
+				window.addEventListener('keydown', function (e) {
+					Run.key = (Run.key || []); 										
+					Run.key[e.keyCode] = (e.type == "keydown");
+				})
+				window.addEventListener('keyup', function (e) {
+					Run.key[e.keyCode] = (e.type == "keydown");            
+				})
+				
+			},
+			
+			StopGame : function(){
+				clearInterval(this.Interval);
+				ctx = Run.context;
+				ctx.fillStyle = 'black';
+				ctx.fillRect(0, 0, screen.width, screen.width);
+				
+				
+				setTimeout(alertFunc, 3000);
+				
+				
+			}
+			
+			
+		}
+		function alertFunc() {
+			window.open("Main Page.html","_self");
+		}
+		
+		
+		
+		function Piece(x, y, height, width, color, xMove, yMove){
+			this.CharWidth = width;
+			this.CharHeight = height;
+			this.XMovement = xMove;		
+			this.YMovement = yMove;
+			this.XCoord = x;
+			this.YCoord = y;
+			this.XPositions = [];
+			this.YPositions = [];
+			
+			
+			this.Refresh = function(){
+				ctx = Run.context;
+				ctx.fillStyle = color;
+				for(var i = 0; i < this.XPositions.length; i++){
+					if (this.CharWidth/2 - i * 0.1 > 0){
+						ctx.beginPath();
+						ctx.arc(this.XPositions[i], this.YPositions[i], this.CharWidth/2 - i * 0.1, 0, 2 * Math.PI);
+						ctx.fill();
+					}
+					//ctx.fillRect(this.XPositions[i], this.YPositions[i], this.CharWidth - i * 0.1, this.CharHeight - i * 0.1);
+				}
+								
+			}
+			
+			this.Refresh1 = function(){
+				ctx = Run.context;
+				ctx.fillStyle = color;
+				ctx.beginPath();
+				ctx.arc(this.XCoord, this.YCoord, this.CharWidth/2, 0, 2 * Math.PI);
+				ctx.fill();
+				ctx.font="25px Georgia";
+				ctx.fillText("Score: " + pointCounter,580,90);
+				ctx.fillText("End: " + end,580,140);
+				
+								
+			}
+			
+			
+			this.UpdatePos = function(){
+				this.XCoord += this.XMovement;
+				this.YCoord += this.YMovement;
+			}
+			
+			
+			
+			
+		}
+		
+		var counter1 = 0;
+		var place = true;
+		var end = 3000;
+		
+		function UpdateGame() {
+			
+			Run.ClearTrail();
+			end--;
+			counter1++;
+			
+			if (end == 0){
+				Run.StopGame();
+			}
+			
+			if (counter1 == 50){
+				mover.push(new Piece(30, 30, 20, 20, "#ffffff", 2, 0));
+			}
+			if (counter1 >= 50){
+			
+				mover[0].UpdatePos();
+				mover[0].Refresh1();
+				if (mover[0].XCoord >= screen.width - 30){
+					mover[0].XMovement = -2;
+				}
+				if (mover[0].XCoord <= 30){
+					mover[0].XMovement = 2;
+				}
+			}
+			if (counter1 % 100 == 0){
+			
+				place = true;
+			}
+			
+			if (counter1 % 250 == 0 && gravity.length < 6) {
+				
+				var x = randomInt(0, screen.width);
+				var y = randomInt(0, screen.height);
+				
+				var x1 = 1/350 * randomInt(0, 100);
+				var y1 = 1/350 * randomInt(0, 100);
+				
+				if (randomInt(0, 100) % 2 == 0){
+					x1 *= -1;
+				}
+				if (randomInt(0, 100) % 2 == 0){
+					y1 *= -1;
+				}
+				
+				var size = randomInt(10, 35);
+				
+				gravity.push(new Piece(x, y, size, size, "#FDB813", x1, y1));
+			}
+			if (Run.key && Run.key[87] && place) {
+				
+				place = false;
+				
+				var x = mover[0].XCoord;	
+				var y = mover[0].YCoord;
+				/*
+				var x1 = 1/100 * randomInt(0, 100);
+				var y1 = 1/100 * randomInt(0, 100);
+				
+				if (randomInt(0, 100) % 2 == 0){
+					x1 *= -1;
+				}
+				if (randomInt(0, 100) % 2 == 0){
+					y1 *= -1;
+				}
+				*/
+				var y1 = 1/100 * randomInt(25, 100);
+				var size = randomInt(10, 20);
+				
+				object.push(new Piece(x, y, size, size, "#5f4e43", 0, y1));
+			}
+			points++;
+			
+			for(var i = 0; i < gravity.length; i++){
+				gravity[i].Refresh1();
+				gravity[i].UpdatePos();
+				
+				
+				for(var j = i + 1; j < gravity.length; j++){
+				
+					var xDist = gravity[j].XCoord - gravity[i].XCoord;
+					var yDist = gravity[j].YCoord - gravity[i].YCoord;
+					
+					var radius = Math.sqrt(xDist ** 2 + yDist ** 2);
+					
+					var force = (1/25 * gravity[j].CharWidth * gravity[i].CharWidth)/(radius ** 2);
+					force = Math.min(force, 1);
+					if (radius < 750 && radius > 20){
+						gravity[i].XMovement += force * (xDist/(2 * gravity[i].CharWidth * radius));
+						gravity[i].YMovement += force * (yDist/(2 * gravity[i].CharWidth * radius));
+						
+						
+						gravity[j].XMovement -= force * (xDist/(2 * gravity[j].CharWidth * radius));
+						gravity[j].YMovement -= force * (yDist/(2 * gravity[j].CharWidth * radius));
+						
+						//object[i].XMovement = Math.min(object[i].XMovement, 3);
+						//object[i].YMovement = Math.min(object[i].YMovement, 3);
+					}
+				}
+				
+				
+			}
+			
+			for(var i = 0; i < object.length; i++){
+			
+				object[i].XPositions.unshift(object[i].XCoord);
+				object[i].YPositions.unshift(object[i].YCoord);
+			
+				if (object[i].XPositions.length > 150){
+					object[i].XPositions.pop();
+					object[i].YPositions.pop();
+				}
+				
+				object[i].UpdatePos();
+				object[i].Refresh();
+				
+				for(var j = 0; j < gravity.length; j++){
+				
+					var xDist = gravity[j].XCoord - object[i].XCoord;
+					var yDist = gravity[j].YCoord - object[i].YCoord;
+					
+					var radius = Math.sqrt(xDist ** 2 + yDist ** 2);
+					
+					var force = (1/10 * gravity[j].CharWidth * object[i].CharWidth)/(radius ** 2);
+					force = Math.min(force, 1);
+					if (radius < 300 && radius > 20){
+						object[i].XMovement += force * (xDist/radius);
+						object[i].YMovement += force * (yDist/radius);
+						
+						//object[i].XMovement = Math.min(object[i].XMovement, 3);
+						//object[i].YMovement = Math.min(object[i].YMovement, 3);
+					}
+					
+				}
+				
+				
+				for(var j = i + 1; j < object.length; j++){
+				
+					var xDist = object[j].XCoord - object[i].XCoord;
+					var yDist = object[j].YCoord - object[i].YCoord;
+					
+					var radius = Math.sqrt(xDist ** 2 + yDist ** 2);
+					
+					var force = (1/15 * object[j].CharWidth * object[i].CharWidth)/(radius ** 2);
+					force = Math.min(force, 1);
+					if (radius < 750 && radius > 20){
+					
+						object[i].XMovement += force * (xDist/(object[i].CharWidth * radius));
+						object[i].YMovement += force * (yDist/(object[i].CharWidth * radius));
+						
+						
+						object[j].XMovement -= force * (xDist/(object[j].CharWidth * radius));
+						object[j].YMovement -= force * (yDist/(object[j].CharWidth * radius));
+						
+						
+						//object[i].XMovement = Math.min(object[i].XMovement, 3);
+						//object[i].YMovement = Math.min(object[i].YMovement, 3);
+					}
+				}
+				
+				
+			}
+			
+			for(var i = 0; i < gravity.length; i++){
+			
+				if (gravity[i].XCoord < -25 || gravity[i].YCoord < -25 || gravity[i].XCoord > screen.width + 25 || gravity[i].YCoord > screen.height + 25){
+				
+					gravity.splice(i, 1);
+				}
+						
+			}
+			
+			for(var i = 0; i < object.length; i++){
+			
+				if (object[i].XCoord < -25 || object[i].YCoord < -25 || object[i].XCoord > screen.width + 25 || object[i].YCoord > screen.height + 25){
+				
+					if (object[i].YCoord > screen.height){
+					
+						pointCounter++;
+						end = 3000;
+					}
+					
+					object.splice(i, 1);
+				}
+						
+			}
+		}
+		
+		
+	
+	</script>
+</head>
+<body onLoad="SetUp()">
+</body>
+</html>
